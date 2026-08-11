@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundamentos do Blender · UC Elementos Multimídia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: #1b1b1e;
+  --bg-raised: #232327;
+  --bg-panel: #29292e;
+  --line: #3a3a40;
+  --text: #ecebe7;
+  --text-dim: #a3a2a8;
+  --text-faint: #6b6a70;
+  --accent: #ef7d22;
+  --accent-dim: #b45a17;
+  --axis-x: #e5484d;
+  --axis-y: #4c9f4c;
+  --axis-z: #3b82c4;
+  --radius: 6px;
+  --display: 'Space Grotesk', sans-serif;
+  --body: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--body);
+  line-height:1.6;
+  font-size:16px;
+}
+
+a{color:var(--accent);}
+a:focus-visible, button:focus-visible, .kbd:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:3px;
+}
+
+/* background grid, viewport-style */
+.grid-bg{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:64px 64px;
+  opacity:0.18;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+}
+
+/* Topbar */
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding:0.9rem 1.75rem;
+  background:rgba(27,27,30,0.88);
+  backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--line);
+  flex-wrap:wrap;
+}
+.topbar .brand{
+  font-family:var(--display);
+  font-weight:600;
+  font-size:0.95rem;
+  letter-spacing:0.01em;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:0.6rem;
+  text-decoration:none;
+}
+.topbar .brand .dot{
+  width:9px;height:9px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 10px var(--accent);
+  flex-shrink:0;
+}
+.topbar .eyebrow{
+  color:var(--text-faint);
+  font-size:0.78rem;
+  font-family:var(--mono);
+}
+.topnav{
+  display:flex;
+  gap:1.35rem;
+  flex-wrap:wrap;
+}
+.topnav a{
+  color:var(--text-dim);
+  text-decoration:none;
+  font-size:0.85rem;
+  font-family:var(--mono);
+  transition:color 0.15s;
+}
+.topnav a:hover{color:var(--accent);}
+
+.wrap{
+  max-width:920px;
+  margin:0 auto;
+  padding:0 1.75rem;
+}
+
+/* Hero */
+.hero{
+  padding:5.5rem 0 4rem;
+  position:relative;
+}
+.hero .kicker{
+  font-family:var(--mono);
+  color:var(--accent);
+  font-size:0.85rem;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  display:flex;
+  align-items:center;
+  gap:0.6rem;
+  margin-bottom:1.4rem;
+}
+.hero .kicker::before{
+  content:"";
+  width:28px;height:1px;
+  background:var(--accent);
+}
+.hero h1{
+  font-family:var(--display);
+  font-size:clamp(2.1rem, 5vw, 3.4rem);
+  line-height:1.08;
+  font-weight:700;
+  margin:0 0 1.3rem;
+  max-width:14ch;
+}
+.hero h1 em{
+  font-style:normal;
+  color:var(--accent);
+}
+.hero p.lead{
+  font-size:1.12rem;
+  color:var(--text-dim);
+  max-width:56ch;
+  margin:0 0 2.2rem;
+}
+.hero-meta{
+  display:flex;
+  gap:2.2rem;
+  flex-wrap:wrap;
+  border-top:1px solid var(--line);
+  padding-top:1.4rem;
+  margin-top:1rem;
+}
+.hero-meta .item{
+  font-size:0.82rem;
+  color:var(--text-faint);
+  font-family:var(--mono);
+}
+.hero-meta .item strong{
+  display:block;
+  color:var(--text);
+  font-family:var(--body);
+  font-size:0.95rem;
+  font-weight:600;
+  margin-top:0.15rem;
+}
+
+/* gizmo */
+.gizmo{
+  position:absolute;
+  right:0;
+  top:4.5rem;
+  width:200px;
+  height:200px;
+  opacity:0.9;
+}
+@media (max-width: 880px){ .gizmo{display:none;} }
+
+/* Sections */
+section{
+  padding:4.2rem 0;
+  border-top:1px solid var(--line);
+}
+.sec-head{
+  display:flex;
+  align-items:baseline;
+  gap:1rem;
+  margin-bottom:1.8rem;
+  flex-wrap:wrap;
+}
+.sec-num{
+  font-family:var(--mono);
+  color:var(--accent);
+  font-size:0.95rem;
+  flex-shrink:0;
+}
+.sec-head h2{
+  font-family:var(--display);
+  font-size:1.7rem;
+  margin:0;
+  font-weight:600;
+}
+.sec-sub{
+  color:var(--text-dim);
+  font-size:0.9rem;
+  margin:-1rem 0 1.8rem;
+}
+p{color:var(--text-dim);}
+.lead-in{color:var(--text); font-size:1.02rem;}
+
+/* kbd */
+.kbd{
+  font-family:var(--mono);
+  background:var(--bg-panel);
+  border:1px solid var(--line);
+  border-bottom-width:2px;
+  color:var(--text);
+  padding:0.12rem 0.5rem;
+  border-radius:4px;
+  font-size:0.82rem;
+  white-space:nowrap;
+}
+
+/* panel diagram (interface tour) */
+.panel-diagram{
+  display:grid;
+  grid-template-columns: 1fr 3fr 1.1fr;
+  grid-template-rows: auto 1fr auto;
+  gap:6px;
+  background:var(--bg-raised);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:6px;
+  margin:1.8rem 0 2.4rem;
+  min-height:280px;
+}
+.pd-cell{
+  background:var(--bg-panel);
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:0.6rem 0.75rem;
+  font-family:var(--mono);
+  font-size:0.72rem;
+  color:var(--text-faint);
+  display:flex;
+  flex-direction:column;
+  gap:0.3rem;
+}
+.pd-cell .lbl{color:var(--accent); font-weight:700; letter-spacing:0.02em;}
+.pd-cell.header{grid-column:1/4; flex-direction:row; align-items:center; gap:1rem;}
+.pd-cell.outliner{grid-row:2/3;}
+.pd-cell.viewport{
+  background:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:22px 22px;
+  background-color:#1f1f23;
+  min-height:180px;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+.pd-cell.viewport .cube{
+  width:56px;height:56px;
+  border:2px solid var(--accent);
+  transform:rotateX(-18deg) rotateY(28deg);
+  transform-style:preserve-3d;
+  position:relative;
+}
+.pd-cell.properties{grid-row:2/3;}
+.pd-cell.timeline{grid-column:1/4;}
+
+/* feature grid (interface tour cards) */
+.feat-grid{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:1rem;
+  margin:1.5rem 0;
+}
+@media (max-width:640px){ .feat-grid{grid-template-columns:1fr;} }
+.feat-card{
+  background:var(--bg-raised);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:1.2rem 1.3rem;
+}
+.feat-card h3{
+  font-family:var(--display);
+  font-size:1rem;
+  margin:0 0 0.5rem;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+}
+.feat-card p{margin:0; font-size:0.92rem;}
+
+/* compare cards mode */
+.mode-compare{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1.2rem;
+  margin:1.8rem 0;
+}
+@media (max-width:640px){ .mode-compare{grid-template-columns:1fr;} }
+.mode-card{
+  border-radius:var(--radius);
+  padding:1.4rem 1.5rem;
+  border:1px solid var(--line);
+}
+.mode-card.object{background:linear-gradient(160deg, rgba(59,130,196,0.12), transparent 60%); border-color:rgba(59,130,196,0.4);}
+.mode-card.edit{background:linear-gradient(160deg, rgba(239,125,34,0.12), transparent 60%); border-color:rgba(239,125,34,0.4);}
+.mode-card h3{font-family:var(--display); margin:0 0 0.7rem; font-size:1.05rem;}
+.mode-card ul{margin:0; padding-left:1.1rem; font-size:0.92rem; color:var(--text-dim);}
+.mode-card li{margin-bottom:0.4rem;}
+
+/* axis legend */
+.axis-legend{
+  display:flex;
+  gap:1.4rem;
+  flex-wrap:wrap;
+  margin:1.2rem 0 1.8rem;
+}
+.axis-chip{
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  font-family:var(--mono);
+  font-size:0.85rem;
+  color:var(--text-dim);
+}
+.axis-chip .sw{width:11px;height:11px;border-radius:3px;}
+.sw.x{background:var(--axis-x);}
+.sw.y{background:var(--axis-y);}
+.sw.z{background:var(--axis-z);}
+
+/* transform table */
+.transform-table{
+  width:100%;
+  border-collapse:collapse;
+  margin:1.5rem 0 2rem;
+  font-size:0.9rem;
+}
+.transform-table th, .transform-table td{
+  text-align:left;
+  padding:0.7rem 0.9rem;
+  border-bottom:1px solid var(--line);
+}
+.transform-table th{
+  font-family:var(--mono);
+  color:var(--text-faint);
+  font-weight:500;
+  font-size:0.78rem;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+}
+.transform-table td{color:var(--text-dim);}
+.transform-table td:first-child{color:var(--text); font-weight:600;}
+
+/* tip / callout */
+.callout{
+  background:var(--bg-raised);
+  border:1px solid var(--line);
+  border-left:3px solid var(--accent);
+  border-radius:0 var(--radius) var(--radius) 0;
+  padding:1.1rem 1.4rem;
+  margin:1.6rem 0;
+  font-size:0.92rem;
+}
+.callout strong{color:var(--accent); font-family:var(--mono); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:0.4rem;}
+.callout p{margin:0; color:var(--text);}
+
+.callout.warn{border-left-color:var(--axis-x);}
+.callout.warn strong{color:var(--axis-x);}
+
+/* checklist prefs */
+.prefs-list{
+  display:grid;
+  gap:0.9rem;
+  margin:1.6rem 0;
+}
+.prefs-item{
+  display:grid;
+  grid-template-columns:28px 1fr;
+  gap:0.9rem;
+  align-items:start;
+}
+.prefs-item .check{
+  width:22px;height:22px;
+  border:1.5px solid var(--accent);
+  border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--accent);
+  font-size:0.75rem;
+  margin-top:0.15rem;
+  flex-shrink:0;
+}
+.prefs-item h4{margin:0 0 0.2rem; font-family:var(--body); font-weight:600; color:var(--text); font-size:0.95rem;}
+.prefs-item p{margin:0; font-size:0.88rem;}
+
+/* comparison table jogos/anim/print */
+.compare-wrap{
+  overflow-x:auto;
+  margin:1.8rem 0 1rem;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+}
+.compare-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.88rem;
+  min-width:560px;
+}
+.compare-table th, .compare-table td{
+  padding:0.85rem 1.1rem;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+  vertical-align:top;
+}
+.compare-table thead th{
+  font-family:var(--display);
+  background:var(--bg-raised);
+  font-size:0.92rem;
+}
+.compare-table thead th:first-child{background:var(--bg);}
+.compare-table tbody th{
+  font-family:var(--mono);
+  color:var(--text-faint);
+  font-weight:500;
+  font-size:0.78rem;
+  text-transform:uppercase;
+  letter-spacing:0.03em;
+  background:var(--bg);
+  white-space:nowrap;
+}
+.compare-table td{color:var(--text-dim);}
+.compare-table tbody tr:last-child td, .compare-table tbody tr:last-child th{border-bottom:none;}
+.compare-table .col-games{background:rgba(239,125,34,0.06);}
+
+/* roadmap */
+.roadmap{
+  display:grid;
+  gap:0.6rem;
+  margin:1.8rem 0;
+}
+.rm-item{
+  display:grid;
+  grid-template-columns:44px 1fr auto;
+  align-items:center;
+  gap:1rem;
+  padding:0.85rem 1.1rem;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:var(--bg-raised);
+}
+.rm-item.active{
+  border-color:var(--accent);
+  background:linear-gradient(90deg, rgba(239,125,34,0.1), transparent);
+}
+.rm-num{
+  font-family:var(--mono);
+  color:var(--text-faint);
+  font-size:0.95rem;
+}
+.rm-item.active .rm-num{color:var(--accent); font-weight:700;}
+.rm-title{font-weight:600; font-size:0.94rem;}
+.rm-item.active .rm-title{color:var(--text);}
+.rm-item:not(.active) .rm-title{color:var(--text-dim);}
+.rm-tag{
+  font-family:var(--mono);
+  font-size:0.7rem;
+  color:var(--text-faint);
+  border:1px solid var(--line);
+  padding:0.2rem 0.55rem;
+  border-radius:100px;
+  white-space:nowrap;
+}
+.rm-item.active .rm-tag{color:var(--accent); border-color:var(--accent-dim);}
+
+/* guided exercise */
+.exercise{
+  background:var(--bg-raised);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:1.8rem 2rem;
+  margin:1.8rem 0;
+}
+.exercise .ex-kicker{
+  font-family:var(--mono);
+  color:var(--accent);
+  font-size:0.78rem;
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+  margin-bottom:0.6rem;
+}
+.exercise h3{
+  font-family:var(--display);
+  margin:0 0 1rem;
+  font-size:1.2rem;
+}
+.exercise ol{
+  padding-left:1.3rem;
+  margin:0;
+  color:var(--text-dim);
+}
+.exercise li{
+  margin-bottom:0.75rem;
+  padding-left:0.2rem;
+}
+.exercise li::marker{
+  font-family:var(--mono);
+  color:var(--accent);
+}
+
+/* chest prop card */
+.chest-card{
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:1.6rem;
+  align-items:center;
+  background:var(--bg-raised);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:1.6rem;
+  margin:1.8rem 0;
+}
+@media (max-width:640px){ .chest-card{grid-template-columns:1fr;} }
+.chest-svg{width:100%; height:auto;}
+.chest-card h3{font-family:var(--display); margin:0 0 0.5rem; font-size:1.15rem;}
+.chest-card p{margin:0 0 0.7rem; font-size:0.92rem;}
+.chest-tags{display:flex; gap:0.5rem; flex-wrap:wrap;}
+.chest-tags span{
+  font-family:var(--mono);
+  font-size:0.72rem;
+  color:var(--text-faint);
+  border:1px solid var(--line);
+  padding:0.2rem 0.5rem;
+  border-radius:100px;
+}
+
+/* footer nav */
+.foot-nav{
+  padding:3.5rem 0 4rem;
+  border-top:1px solid var(--line);
+}
+.foot-nav-inner{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:1.5rem;
+  flex-wrap:wrap;
+}
+.foot-next{
+  text-decoration:none;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:0.3rem;
+}
+.foot-next .fn-label{
+  font-family:var(--mono);
+  color:var(--text-faint);
+  font-size:0.75rem;
+  text-transform:uppercase;
+}
+.foot-next .fn-title{
+  font-family:var(--display);
+  color:var(--text);
+  font-size:1.15rem;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+}
+.foot-next:hover .fn-title{color:var(--accent);}
+.foot-back{
+  color:var(--text-dim);
+  text-decoration:none;
+  font-size:0.85rem;
+  font-family:var(--mono);
+}
+.foot-meta{
+  text-align:center;
+  color:var(--text-faint);
+  font-size:0.78rem;
+  margin-top:3rem;
+  font-family:var(--mono);
+}
+</style>
+</head>
+<body>
+<div class="grid-bg" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="#top"><span class="dot" aria-hidden="true"></span>Blender para Jogos <span class="eyebrow">· Site 1/7</span></a>
+  <nav class="topnav" aria-label="Navegação da página">
+    <a href="#interface">Interface</a>
+    <a href="#navegacao">Navegação</a>
+    <a href="#modos">Modos</a>
+    <a href="#transformacoes">Transformações</a>
+    <a href="#organizacao">Organização</a>
+    <a href="#comparativo">Jogos×Animação×Print</a>
+    <a href="#prop-guia">Prop-guia</a>
+  </nav>
+</header>
+
+<main class="wrap" id="top">
+
+  <section class="hero" style="border-top:none; padding-top:4.5rem;">
+    <svg class="gizmo" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="70" fill="none" stroke="#3a3a40" stroke-width="1"/>
+      <line x1="100" y1="100" x2="165" y2="100" stroke="var(--axis-x)" stroke-width="2"/>
+      <circle cx="165" cy="100" r="9" fill="var(--axis-x)"/>
+      <text x="165" y="104" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#1b1b1e" font-weight="700">X</text>
+      <line x1="100" y1="100" x2="100" y2="35" stroke="var(--axis-z)" stroke-width="2"/>
+      <circle cx="100" cy="35" r="9" fill="var(--axis-z)"/>
+      <text x="100" y="39" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#1b1b1e" font-weight="700">Z</text>
+      <line x1="100" y1="100" x2="55" y2="145" stroke="var(--axis-y)" stroke-width="2"/>
+      <circle cx="55" cy="145" r="9" fill="var(--axis-y)"/>
+      <text x="55" y="149" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#1b1b1e" font-weight="700">Y</text>
+      <circle cx="100" cy="100" r="4" fill="#ecebe7"/>
+    </svg>
+
+    <p class="kicker">Planejamento e Produção de Elementos Multimídia de Jogos Digitais</p>
+    <h1>O cubo padrão vira <em>asset de jogo</em>.</h1>
+    <p class="lead">Este é o primeiro de sete materiais sobre modelagem 3D no Blender voltada à produção de jogos. Antes de modelar qualquer coisa, você precisa saber onde estão as ferramentas, como a câmera se move no espaço 3D e por que um objeto feito para um jogo é diferente de um feito para animação ou para uma impressora 3D.</p>
+
+    <div class="hero-meta">
+      <div class="item">Ferramenta<strong>Blender (gratuito, código aberto)</strong></div>
+      <div class="item">Pré-requisito<strong>Nenhum — começamos do zero</strong></div>
+      <div class="item">Prop-guia da série<strong>Baú do tesouro</strong></div>
+      <div class="item">Próxima etapa<strong>Site 2 · Modelagem</strong></div>
+    </div>
+  </section>
+
+  <section id="porque">
+    <div class="sec-head"><span class="sec-num">00</span><h2>Por que Blender, e por que isso importa para jogos</h2></div>
+    <p class="lead-in">O Blender é um software de criação 3D completo — modelagem, escultura, UV, materiais, iluminação, rigging, animação, simulação, compositing e até edição de vídeo — e é <strong style="color:var(--text)">gratuito e de código aberto</strong>. É o motivo de ser o software 3D mais usado por estúdios indie e por quem está aprendendo: dá para ir do zero a um asset pronto para engine sem pagar nenhuma licença.</p>
+    <p>Nesta UC, o Blender entra depois da parte 2D (Illustrator/Photoshop): o logotipo e a concept art definem a <em>identidade visual</em> do jogo; o Blender é onde essa identidade vira <em>objeto no espaço</em> — um prop, um cenário, um personagem — pronto para ser importado numa engine como Unity, Unreal ou Godot.</p>
+    <div class="callout">
+      <strong>O que você vai conseguir fazer até o Site 6</strong>
+      <p>Modelar um objeto do zero, prepará-lo com UV e material PBR, otimizá-lo para tempo real e exportá-lo num formato que qualquer engine de jogo entende. O Site 7 acrescenta rigging e uma animação simples sobre o mesmo objeto.</p>
+    </div>
+  </section>
+
+  <section id="interface">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Tour pela interface</h2></div>
+    <p class="sec-sub">Quatro painéis resolvem 90% do que você vai fazer nesta série.</p>
+
+    <div class="panel-diagram" role="img" aria-label="Diagrama simplificado da interface do Blender, mostrando cabeçalho superior, outliner à esquerda, viewport 3D ao centro, propriedades à direita e linha do tempo na base">
+      <div class="pd-cell header"><span class="lbl">Header</span><span>Modo ativo · Menus · Snapping</span></div>
+      <div class="pd-cell outliner"><span class="lbl">Outliner</span><span>Hierarquia da cena</span><span>Coleções, objetos, luzes, câmera</span></div>
+      <div class="pd-cell viewport"><div class="cube" aria-hidden="true"></div></div>
+      <div class="pd-cell properties"><span class="lbl">Properties</span><span>Object · Modifiers</span><span>Material · Render</span></div>
+      <div class="pd-cell timeline"><span class="lbl">Timeline</span><span>Frames · Keyframes (usado a partir do Site 7)</span></div>
+    </div>
+
+    <div class="feat-grid">
+      <div class="feat-card">
+        <h3>Viewport 3D</h3>
+        <p>Onde você vê e manipula os objetos. É a maior área da tela e onde você vai passar praticamente todo o tempo desta série.</p>
+      </div>
+      <div class="feat-card">
+        <h3>Outliner</h3>
+        <p>Lista em árvore de tudo que existe na cena: objetos, coleções, luzes, câmeras. Renomear e organizar aqui evita caos quando o projeto cresce.</p>
+      </div>
+      <div class="feat-card">
+        <h3>Properties</h3>
+        <p>Painel de abas à direita — cada ícone é uma categoria (objeto, modificadores, material, física...). Vamos usar principalmente Object, Modifier e Material nesta série.</p>
+      </div>
+      <div class="feat-card">
+        <h3>Header / Modos</h3>
+        <p>Barra superior do viewport mostra o modo ativo (Object, Edit...) e ferramentas de snapping que vamos usar a partir do Site 2.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Dica prática</strong>
+      <p>Todo painel do Blender pode ser redimensionado arrastando a borda entre eles, e a maioria pode ser dividido em dois. Não existe "layout errado" — ajuste até sobrar espaço confortável para o viewport, que é onde o trabalho realmente acontece.</p>
+    </div>
+  </section>
+
+  <section id="navegacao">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Navegação no viewport</h2></div>
+    <p class="sec-sub">Você não anda pela cena — você gira, desliza e aproxima uma câmera imaginária.</p>
+
+    <table class="transform-table">
+      <thead>
+        <tr><th>Ação</th><th>Mouse com 3 botões</th><th>Trackpad / sem botão do meio</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Orbitar (girar a câmera)</td><td><span class="kbd">Botão do meio</span> + arrastar</td><td>Dois dedos girando, ou <span class="kbd">Alt</span> + arrastar</td></tr>
+        <tr><td>Panorâmica (deslizar)</td><td><span class="kbd">Shift</span> + <span class="kbd">Botão do meio</span></td><td>Dois dedos deslizando</td></tr>
+        <tr><td>Zoom</td><td>Rolar a <span class="kbd">Scroll wheel</span></td><td>Pinça com dois dedos</td></tr>
+        <tr><td>Enquadrar tudo</td><td><span class="kbd">Home</span></td><td><span class="kbd">Home</span></td></tr>
+        <tr><td>Enquadrar seleção</td><td><span class="kbd">.</span> (numpad)</td><td>Menu View → Frame Selected</td></tr>
+      </tbody>
+    </table>
+
+    <p class="lead-in">Vistas ortográficas (numpad) valem a pena decorar cedo — são a forma mais precisa de alinhar geometria:</p>
+    <table class="transform-table">
+      <tbody>
+        <tr><td>Vista frontal</td><td><span class="kbd">Numpad 1</span></td><td>Eixo −Y</td></tr>
+        <tr><td>Vista lateral</td><td><span class="kbd">Numpad 3</span></td><td>Eixo −X</td></tr>
+        <tr><td>Vista superior</td><td><span class="kbd">Numpad 7</span></td><td>Eixo −Z (visão de cima)</td></tr>
+        <tr><td>Alternar Perspectiva/Ortográfica</td><td><span class="kbd">Numpad 5</span></td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>Notebook sem numpad?</strong>
+      <p>Ative <span class="kbd">Emulate Numpad</span> em Edit → Preferences → Input. Os números do teclado normal passam a funcionar como as teclas acima — configuração que vale fazer antes de começar a modelar de fato.</p>
+    </div>
+  </section>
+
+  <section id="modos">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Object Mode × Edit Mode</h2></div>
+    <p class="sec-sub">A distinção mais importante de toda a série — tudo que vem depois depende de saber em qual dos dois você está.</p>
+
+    <div class="mode-compare">
+      <div class="mode-card object">
+        <h3>Object Mode</h3>
+        <ul>
+          <li>Move, rotaciona e escala o <strong>objeto inteiro</strong></li>
+          <li>Onde você organiza a cena, aplica modificadores e exporta</li>
+          <li>Cada objeto aparece como um item independente no Outliner</li>
+          <li>Modo padrão ao abrir o Blender</li>
+        </ul>
+      </div>
+      <div class="mode-card edit">
+        <h3>Edit Mode</h3>
+        <ul>
+          <li>Edita a <strong>malha por dentro</strong>: vértices, arestas e faces</li>
+          <li>É aqui que a modelagem de fato acontece (Site 2 em diante)</li>
+          <li>Alterna entre seleção de Vertex / Edge / Face com <span class="kbd">1</span> <span class="kbd">2</span> <span class="kbd">3</span></li>
+          <li>Só existe para um objeto do tipo malha por vez</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Alternar entre os dois</strong>
+      <p>Tecla <span class="kbd">Tab</span> com o objeto selecionado. É provavelmente a tecla que você mais vai apertar em toda a série — memorize antes de seguir para o Site 2.</p>
+    </div>
+  </section>
+
+  <section id="transformacoes">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Transformações e eixos</h2></div>
+    <p class="sec-sub">Três teclas resolvem praticamente toda a manipulação de objetos: G, R, S.</p>
+
+    <div class="axis-legend">
+      <div class="axis-chip"><span class="sw x" aria-hidden="true"></span>X — vermelho</div>
+      <div class="axis-chip"><span class="sw y" aria-hidden="true"></span>Y — verde</div>
+      <div class="axis-chip"><span class="sw z" aria-hidden="true"></span>Z — azul, "para cima"</div>
+    </div>
+    <p>Essas três cores aparecem em todo lugar no Blender — no gizmo de transformação, no N-panel, no eixo do viewport — e valem a pena fixar agora: vão reaparecer em UV (Site 3) e em rigging (Site 7).</p>
+
+    <table class="transform-table">
+      <thead><tr><th>Tecla</th><th>Ação</th><th>Restringir a um eixo</th></tr></thead>
+      <tbody>
+        <tr><td><span class="kbd">G</span></td><td>Grab / mover</td><td><span class="kbd">G</span> <span class="kbd">X</span> move só no X (e <span class="kbd">Y</span>, <span class="kbd">Z</span> do mesmo jeito)</td></tr>
+        <tr><td><span class="kbd">R</span></td><td>Rotate / rotacionar</td><td><span class="kbd">R</span> <span class="kbd">Z</span> gira só em torno do eixo Z</td></tr>
+        <tr><td><span class="kbd">S</span></td><td>Scale / escalar</td><td><span class="kbd">S</span> <span class="kbd">Shift+Z</span> escala em tudo, exceto Z</td></tr>
+      </tbody>
+    </table>
+
+    <p>Depois de pressionar a tecla, digite um número para um valor exato — <span class="kbd">G</span> <span class="kbd">X</span> <span class="kbd">2</span> <span class="kbd">Enter</span> move exatamente 2 unidades no eixo X. Isso é mais rápido e mais preciso do que arrastar com o mouse, e vira hábito rapidamente.</p>
+
+    <div class="callout">
+      <strong>Painel N</strong>
+      <p>Tecla <span class="kbd">N</span> dentro do viewport abre um painel lateral com a posição, rotação e escala exatas do objeto selecionado — útil para conferir ou digitar valores diretamente, em vez de estimar visualmente.</p>
+    </div>
+  </section>
+
+  <section id="organizacao">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Organização da cena e preferências essenciais</h2></div>
+    <p class="sec-sub">Hábitos que evitam retrabalho nos próximos seis sites.</p>
+
+    <div class="prefs-list">
+      <div class="prefs-item">
+        <div class="check">✓</div>
+        <div><h4>Renomeie objetos no Outliner</h4><p>Duplo clique no nome. Um projeto com "Cube.003" e "Cube.004" é impossível de organizar depois — chame de "Bau_Corpo" e "Bau_Tampa" desde o início.</p></div>
+      </div>
+      <div class="prefs-item">
+        <div class="check">✓</div>
+        <div><h4>Use Collections para agrupar</h4><p>Botão direito no Outliner → New Collection. Separe, por exemplo, "Props" de "Referência" — facilita esconder e exportar apenas o necessário.</p></div>
+      </div>
+      <div class="prefs-item">
+        <div class="check">✓</div>
+        <div><h4>Unidades em métrico</h4><p>Properties → Scene → Units → Metric, com Unit Scale = 1 (1 unidade do Blender = 1 metro). Engines de jogo trabalham em metros — alinhar isso agora evita assets com escala errada no Site 6.</p></div>
+      </div>
+      <div class="prefs-item">
+        <div class="check">✓</div>
+        <div><h4>Auto Save ativado</h4><p>Edit → Preferences → Save & Load → Auto Save. Já vem ativo por padrão, mas vale confirmar o intervalo (2–5 minutos é razoável).</p></div>
+      </div>
+      <div class="prefs-item">
+        <div class="check">✓</div>
+        <div><h4>Salve incrementalmente</h4><p><span class="kbd">Ctrl+Shift+S</span> com um número no nome do arquivo (bau_v01.blend, bau_v02.blend...). Se algo quebrar, você volta para uma versão anterior em vez de recomeçar.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="comparativo">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Modelar para quê? Jogos × Animação × Impressão 3D</h2></div>
+    <p class="sec-sub">O mesmo Blender, a mesma malha — mas as regras de topologia mudam completamente conforme o destino final.</p>
+    <p class="lead-in">Esta série é focada em modelagem <strong style="color:var(--accent)">para jogos</strong>, mas entender as outras duas finalidades ajuda a explicar <em>por que</em> vamos priorizar certas decisões (poucos polígonos, UV eficiente) em vez de outras.</p>
+
+    <div class="compare-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Critério</th>
+            <th class="col-games">Jogos (tempo real)</th>
+            <th>Animação</th>
+            <th>Impressão 3D</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Prioridade</th>
+            <td class="col-games">Baixa contagem de polígonos, performance</td>
+            <td>Topologia que deforma bem ao mover</td>
+            <td>Malha fisicamente imprimível</td>
+          </tr>
+          <tr>
+            <th scope="row">Topologia ideal</th>
+            <td class="col-games">O mínimo de polígonos que ainda lê bem visualmente; detalhe "falso" via normal map</td>
+            <td>Quads bem distribuídos, edge loops seguindo músculos e articulações</td>
+            <td>Não precisa seguir regra de fluxo — precisa ser sólida</td>
+          </tr>
+          <tr>
+            <th scope="row">Requisito técnico central</th>
+            <td class="col-games">UV bem organizada (Site 3) para receber textura</td>
+            <td>Rig limpo por baixo da malha (armature + weight paint)</td>
+            <td>Malha <strong style="color:var(--text)">manifold</strong> — fechada, sem furos ou faces soltas</td>
+          </tr>
+          <tr>
+            <th scope="row">O que quebra o resultado</th>
+            <td class="col-games">Polígonos demais (queda de FPS), UV mal distribuída (textura esticada)</td>
+            <td>Poucos loops nas articulações (deformação "quebrada" ao animar)</td>
+            <td>Geometria não-manifold (a peça "não existe" fisicamente e não fatia)</td>
+          </tr>
+          <tr>
+            <th scope="row">Formato de saída típico</th>
+            <td class="col-games">.fbx / .glb, importado numa engine (Site 6)</td>
+            <td>.blend nativo, ou exportado com rig para outro software de animação</td>
+            <td>.stl / .obj, aberto num fatiador (slicer)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <strong>Por que isso importa desde já</strong>
+      <p>Um objeto modelado pensando em impressão 3D costuma ter polígonos demais para uma engine de jogo rodar em tempo real. Um objeto pensado para animação tem edge loops que um prop estático (como nosso baú) simplesmente não precisa. Cada decisão de modelagem, a partir do Site 2, vai ser tomada com a coluna "Jogos" desta tabela em mente.</p>
+    </div>
+  </section>
+
+  <section id="prop-guia">
+    <div class="sec-head"><span class="sec-num">07</span><h2>O prop-guia da série: o Baú do Tesouro</h2></div>
+    <p class="sec-sub">O mesmo objeto atravessa os sete sites — modelado, texturizado, otimizado, exportado e, por fim, animado.</p>
+
+    <div class="chest-card">
+      <svg class="chest-svg" viewBox="0 0 160 140" role="img" aria-label="Ilustração simplificada de um baú do tesouro em wireframe">
+        <g fill="none" stroke="var(--accent)" stroke-width="2">
+          <path d="M20 70 L20 120 L140 120 L140 70 Z"/>
+          <path d="M20 70 Q80 40 140 70"/>
+          <path d="M30 75 L30 115 M50 75 L50 118 M80 75 L80 119 M110 75 L110 118 M130 75 L130 115" stroke="var(--line)" stroke-width="1"/>
+          <path d="M75 70 L75 45 M85 70 L85 45" stroke="var(--line)" stroke-width="1"/>
+          <rect x="72" y="90" width="16" height="14" rx="2" stroke="var(--axis-y)"/>
+        </g>
+      </svg>
+      <div>
+        <h3>Por que um baú?</h3>
+        <p>É um prop clássico de jogo, simples o bastante para modelar em poucas formas primitivas (corpo + tampa), com dois materiais naturais (madeira e metal) e uma "junta" óbvia — a tampa — que se torna o exemplo perfeito de rig simples no Site 7.</p>
+        <div class="chest-tags">
+          <span>Site 2 · Modelagem do corpo e tampa</span>
+          <span>Site 3 · UV de madeira + metal</span>
+          <span>Site 4 · Material PBR</span>
+          <span>Site 5 · Otimização</span>
+          <span>Site 6 · Exportação .fbx/.glb</span>
+          <span>Site 7 · Rig da tampa + animação de abertura</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="roadmap" aria-label="Roteiro dos sete sites da série">
+      <div class="rm-item active"><span class="rm-num">01</span><span class="rm-title">Fundamentos do Blender</span><span class="rm-tag">você está aqui</span></div>
+      <div class="rm-item"><span class="rm-num">02</span><span class="rm-title">Modelagem (Poly Modeling)</span><span class="rm-tag">em breve</span></div>
+      <div class="rm-item"><span class="rm-num">03</span><span class="rm-title">UV Unwrapping</span><span class="rm-tag">em breve</span></div>
+      <div class="rm-item"><span class="rm-num">04</span><span class="rm-title">Materiais e Shading (PBR)</span><span class="rm-tag">em breve</span></div>
+      <div class="rm-item"><span class="rm-num">05</span><span class="rm-title">Otimização para game-ready assets</span><span class="rm-tag">em breve</span></div>
+      <div class="rm-item"><span class="rm-num">06</span><span class="rm-title">Exportação e integração com engines</span><span class="rm-tag">em breve</span></div>
+      <div class="rm-item"><span class="rm-num">07</span><span class="rm-title">Rigging e Animação básica</span><span class="rm-tag">em breve</span></div>
+    </div>
+  </section>
+
+  <section id="exercicio">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Exercício guiado — antes de seguir em frente</h2></div>
+    <div class="exercise">
+      <div class="ex-kicker">Prática de 10 minutos</div>
+      <h3>Configure o arquivo que vai virar o baú do tesouro</h3>
+      <ol>
+        <li>Abra o Blender. Selecione o cubo padrão e delete (<span class="kbd">X</span> → Delete, ou tecla <span class="kbd">Delete</span>).</li>
+        <li>Adicione um novo cubo: <span class="kbd">Shift+A</span> → Mesh → Cube.</li>
+        <li>Renomeie esse objeto no Outliner para <strong style="color:var(--text)">Bau_Corpo</strong> (duplo clique no nome).</li>
+        <li>Pratique as três transformações: mova com <span class="kbd">G</span>, rotacione com <span class="kbd">R</span>, escale com <span class="kbd">S</span> — teste restringindo a um eixo (<span class="kbd">X</span>, <span class="kbd">Y</span> ou <span class="kbd">Z</span>) depois de cada tecla.</li>
+        <li>Alterne para Edit Mode com <span class="kbd">Tab</span>, observe os vértices, arestas e faces do cubo, e volte para Object Mode.</li>
+        <li>Abra o painel N (tecla <span class="kbd">N</span>) e zere a rotação e ajuste a escala para 1,1,1 — deixando o objeto "limpo" para o Site 2.</li>
+        <li>Confirme as unidades da cena em métrico (Properties → Scene → Units) e salve o arquivo como <strong style="color:var(--text)">bau_v01.blend</strong>.</li>
+      </ol>
+    </div>
+    <p>Esse arquivo é o ponto de partida do <strong style="color:var(--text)">Site 2</strong>, onde o cubo deixa de ser um cubo e começa a virar, de fato, um baú.</p>
+  </section>
+
+</main>
+
+<footer class="foot-nav">
+  <div class="wrap foot-nav-inner">
+    <a class="foot-back" href="https://rclepf.github.io/PacoteAdobeJogos/">← Voltar ao panorama da UC</a>
+    <a class="foot-next" href="../blender-modelagem/index.html">
+      <span class="fn-label">Próximo · Site 2 de 7</span>
+      <span class="fn-title">Modelagem (Poly Modeling) →</span>
+    </a>
+  </div>
+  <p class="wrap foot-meta">Planejamento e Produção de Elementos Multimídia de Jogos Digitais · Blender para Jogos · Site 1: Fundamentos</p>
+</footer>
+
+</body>
+</html>
